@@ -32,23 +32,6 @@ NETWORK GAME IN THE BROWSER
 - No port forwarding needed. Browser players play with browser players only
   (not with the Windows .exe).
 
-PHONES AND TABLETS
-Open the same web address on the phone (Chrome on Android, Safari on iPhone),
-turn the phone sideways and press "Download the game data".
-On a touchscreen "Touch controls" and "Phone graphics" switch on by
-themselves (both can be changed in the main menu; Phone graphics also in the
-pause menu).
-- Tap a unit to select it; tap the ground or an enemy to give an order.
-- Hold a finger still for half a second, then drag: selection box.
-- Drag one finger: move the map. Pinch with two fingers: zoom.
-- Buttons on the right: Army (select all soldiers), Add (next taps add to
-  the selection), Box (next drag draws a box), Clear, Group 1-3 (tap selects
-  the group, hold to store the current selection in it).
-- Building: pick it in the command card, drag the outline into place,
-  then press Build (Rotate turns it, Cancel stops).
-Phones and PCs can play the same network game. Everyone runs at the speed of
-the slowest device, so a slow phone slows the match down for both players.
-
 SAVES
 Saves are kept inside the browser. In Load Game you can download a save, or
 import saves from the Windows game (%APPDATA%\Ironblood\saves\*.json).
