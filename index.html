@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+<title>Ironblood: A Barbarian Age RTS</title>
+<!--
+	IRONBLOOD browser loader (Godot web export shell).
+
+	The game's code comes from the server (ironblood.pck). The game data
+	(models, textures, sounds) is a second pack, taken from one of:
+	  1. a copy saved in this browser (IndexedDB) from an earlier visit,
+	  2. the player's installed Ironblood.exe, chosen with a file picker:
+	     the pack embedded at the end of the .exe is cut out and saved,
+	  3. ironblood-data.pck downloaded from the same server (or from the
+	     address in ?data=...).
+	It is handed to the engine at /ironblood/data.pck, where the WebBoot
+	autoload mounts it (scripts/autoload/web_boot.gd).
+-->
+<style>
+:root {
+	--bg: #120e0b;
+	--panel: #1d1712;
+	--edge: #6b5330;
+	--gold: #e0b866;
+	--text: #e8dcc6;
+	--dim: #a89a84;
+	--warn: #ff9a70;
+}
+html, body, #canvas { margin: 0; padding: 0; border: 0; }
+body {
+	color: var(--text);
+	background: var(--bg);
+	overflow: hidden;
+	touch-action: none;
+	font-family: Georgia, 'Times New Roman', serif;
+}
+#canvas { display: block; }
+#canvas:focus { outline: none; }
+
+#loader {
+	position: absolute; inset: 0;
+	display: flex; align-items: center; justify-content: center;
+	background: radial-gradient(ellipse at center, #2a1f15 0%, var(--bg) 70%);
+	z-index: 2;
+	padding: 16px;
+	box-sizing: border-box;
+	overflow-y: auto;
+}
+.card {
+	width: 100%; max-width: 620px;
+	background: var(--panel);
+	border: 1px solid var(--edge);
+	border-radius: 6px;
+	box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+	padding: 28px 30px 22px;
+	box-sizing: border-box;
+}
+h1 {
+	margin: 0; text-align: center;
+	color: var(--gold);
+	font-size: 44px; letter-spacing: 8px; font-weight: normal;
+}
+.sub { text-align: center; color: var(--dim); margin: 4px 0 22px; font-style: italic; }
+.row { margin: 12px 0; }
+button {
+	width: 100%;
+	font: inherit; font-size: 17px;
+	color: var(--text);
+	background: linear-gradient(#3a2c1e, #2a2016);
+	border: 1px solid var(--edge);
+	border-radius: 4px;
+	padding: 11px 14px;
+	cursor: pointer;
+	text-align: left;
+}
+button:hover:not(:disabled) { border-color: var(--gold); color: #fff; }
+button:disabled { opacity: 0.45; cursor: default; }
+button.main { text-align: center; font-size: 20px; color: var(--gold); padding: 14px; }
+button small { display: block; color: var(--dim); font-size: 13px; margin-top: 3px; }
+.links { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; font-size: 13px; color: var(--dim); }
+.links a { color: var(--dim); cursor: pointer; text-decoration: underline; }
+#status { margin-top: 14px; min-height: 20px; color: var(--dim); font-size: 14px; white-space: pre-line; }
+#status.error { color: var(--warn); }
+progress { width: 100%; height: 10px; margin-top: 10px; display: none; accent-color: var(--gold); }
+#drop.over { outline: 2px dashed var(--gold); outline-offset: 4px; }
+input[type=file] { display: none; }
+</style>
+<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+
+</head>
+<body>
+<canvas id="canvas">Your browser does not support the canvas tag.</canvas>
+<noscript>IRONBLOOD needs JavaScript.</noscript>
+
+<div id="loader">
+	<div class="card" id="drop">
+		<h1>IRONBLOOD</h1>
+		<div class="sub">A Barbarian Age RTS, in your browser</div>
+
+		<div class="row"><button class="main" id="play" disabled data-off="1">Checking this browser...</button></div>
+		<div class="row"><button id="pick">Use my installed game
+			<small>Choose Ironblood.exe from your Ironblood folder (or drop it on this box). It stays on your PC; the browser keeps a copy of its game data.</small></button></div>
+		<div class="row"><button id="download" disabled data-off="1">Download the game data
+			<small id="download-note">Looking for it on this server...</small></button></div>
+		<div class="row"><button id="bare">Play without game data
+			<small>Built-in simple models, no sound. Works anywhere.</small></button></div>
+
+		<progress id="bar"></progress>
+		<div id="status"></div>
+		<div class="links">
+			<span id="cached-note"></span>
+			<a id="forget" style="display:none">Forget the saved game data</a>
+		</div>
+		<input type="file" id="file" accept=".exe,.pck">
+	</div>
+</div>
+
+<script src="index.js"></script>
+<script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":499168,"index.wasm":43699190},"focusCanvas":true,"gdextensionLibs":[]};
+const GODOT_THREADS_ENABLED = false;
+// The data pack sits next to this page, or anywhere that allows downloads
+// from other sites (for example a public GitHub repository's raw file),
+// given as ?data=<address>.
+const DATA_URL = new URLSearchParams(location.search).get('data') || 'ironblood-data.pck';
+const DATA_PATH = '/ironblood/data.pck';
+const engine = new Engine(GODOT_CONFIG);
+
+(function () {
+	const $ = (id) => document.getElementById(id);
+	const statusEl = $('status');
+	const bar = $('bar');
+	let cached = null;     // {blob, source, size, date}
+	let busy = false;
+	let serverSize = 0;    // size of the data pack on the server, once known
+
+	function status(text, error) {
+		statusEl.textContent = text || '';
+		statusEl.className = error ? 'error' : '';
+	}
+	function mb(n) { return (n / 1048576).toFixed(1) + ' MB'; }
+	// Buttons that are unavailable for good carry data-off="1".
+	function setBusy(on) {
+		busy = on;
+		for (const id of ['play', 'pick', 'download', 'bare']) {
+			$(id).disabled = on || $(id).dataset.off === '1';
+		}
+	}
+	function setOff(id, off) {
+		$(id).dataset.off = off ? '1' : '';
+		$(id).disabled = busy || off;
+	}
+
+	// --- Saved game data (IndexedDB) ----------------------------------------------------
+
+	function db() {
+		return new Promise((resolve, reject) => {
+			const req = indexedDB.open('ironblood-web', 1);
+			req.onupgradeneeded = () => req.result.createObjectStore('files');
+			req.onsuccess = () => resolve(req.result);
+			req.onerror = () => reject(req.error);
+		});
+	}
+	async function dbGet(key) {
+		const d = await db();
+		return new Promise((resolve, reject) => {
+			const r = d.transaction('files').objectStore('files').get(key);
+			r.onsuccess = () => resolve(r.result || null);
+			r.onerror = () => reject(r.error);
+		});
+	}
+	async function dbPut(key, value) {
+		const d = await db();
+		return new Promise((resolve, reject) => {
+			const t = d.transaction('files', 'readwrite');
+			t.objectStore('files').put(value, key);
+			t.oncomplete = () => resolve();
+			t.onerror = () => reject(t.error);
+		});
+	}
+	async function dbDelete(key) {
+		const d = await db();
+		return new Promise((resolve) => {
+			const t = d.transaction('files', 'readwrite');
+			t.objectStore('files').delete(key);
+			t.oncomplete = () => resolve();
+			t.onerror = () => resolve();
+		});
+	}
+
+	async function remember(blob, source) {
+		cached = { blob, source, size: blob.size, date: new Date().toISOString() };
+		try {
+			if (navigator.storage && navigator.storage.persist) {
+				await navigator.storage.persist();
+			}
+			await dbPut('data', cached);
+		} catch (err) {
+			console.warn('Could not save the game data in this browser:', err);
+			status('Note: this browser would not keep a copy, so you will need the file again next time.');
+		}
+		showCached();
+	}
+
+	function showCached() {
+		const play = $('play');
+		if (cached) {
+			play.textContent = 'Play IRONBLOOD';
+			setOff('play', false);
+			$('cached-note').textContent = `Game data saved in this browser: ${cached.source}, ${mb(cached.size)}.`;
+			$('forget').style.display = '';
+		} else {
+			play.textContent = 'Choose where the game data comes from';
+			setOff('play', true);
+			$('cached-note').textContent = '';
+			$('forget').style.display = 'none';
+		}
+	}
+
+	// --- Reading the pack out of an installed Ironblood.exe ---------------------------------
+
+	async function readMagic(blob, at) {
+		const b = new Uint8Array(await blob.slice(at, at + 4).arrayBuffer());
+		return String.fromCharCode(...b);
+	}
+
+	// A Godot executable with an embedded pack ends with [pack size: u64][magic "GDPC"].
+	async function extractPack(file) {
+		if (file.size < 16) {
+			throw new Error('That file is too small to be the game.');
+		}
+		if (await readMagic(file, 0) === 'GDPC') {
+			return file;   // already a .pck
+		}
+		if (await readMagic(file, file.size - 4) !== 'GDPC') {
+			throw new Error('No game data found in that file. Choose Ironblood.exe from your Ironblood folder.');
+		}
+		const tail = new DataView(await file.slice(file.size - 12, file.size - 4).arrayBuffer());
+		const packSize = Number(tail.getBigUint64(0, true));
+		const start = file.size - 12 - packSize;
+		if (start < 0 || await readMagic(file, start) !== 'GDPC') {
+			throw new Error('The game data inside that file could not be read.');
+		}
+		return file.slice(start, file.size - 12, 'application/octet-stream');
+	}
+
+	async function useFile(file) {
+		if (busy || !file) return;
+		setBusy(true);
+		status(`Reading ${file.name}...`);
+		try {
+			const pack = await extractPack(file);
+			await remember(pack, file.name);
+			status(`Found the game data in ${file.name} (${mb(pack.size)}).`);
+			setBusy(false);
+			start(pack);
+		} catch (err) {
+			setBusy(false);
+			status(err.message || String(err), true);
+		}
+	}
+
+	// --- Downloading the data pack from this server -----------------------------------------
+
+	async function probeDownload() {
+		try {
+			const r = await fetch(DATA_URL, { method: 'HEAD', cache: 'no-store' });
+			if (!r.ok) throw new Error('missing');
+			const size = Number(r.headers.get('Content-Length') || 0);
+			serverSize = size;
+			setOff('download', false);
+			$('download-note').textContent = `Downloads ${size ? mb(size) : 'the data'} once; the browser keeps it.`;
+		} catch (err) {
+			$('download-note').textContent = 'Not available on this server. Use your installed game instead.';
+		}
+	}
+
+	async function download() {
+		if (busy) return;
+		setBusy(true);
+		status('Downloading the game data...');
+		bar.style.display = 'block';
+		try {
+			const r = await fetch(DATA_URL, { cache: 'no-store' });
+			if (!r.ok) throw new Error(`Download failed (${r.status}).`);
+			const total = Number(r.headers.get('Content-Length') || 0);
+			const reader = r.body.getReader();
+			const parts = [];
+			let got = 0;
+			for (;;) {
+				const { done, value } = await reader.read();
+				if (done) break;
+				parts.push(value);
+				got += value.length;
+				if (total) { bar.max = total; bar.value = got; }
+				status(`Downloading the game data... ${mb(got)}${total ? ' of ' + mb(total) : ''}`);
+			}
+			const blob = new Blob(parts, { type: 'application/octet-stream' });
+			if (await readMagic(blob, 0) !== 'GDPC') throw new Error('The downloaded file is not game data.');
+			await remember(blob, 'downloaded');
+			bar.style.display = 'none';
+			setBusy(false);
+			start(blob);
+		} catch (err) {
+			bar.style.display = 'none';
+			setBusy(false);
+			status(err.message || String(err), true);
+		}
+	}
+
+	// --- Starting the engine ----------------------------------------------------------------
+
+	let started = false;
+	async function start(blob) {
+		if (started) return;
+		started = true;
+		setBusy(true);
+		bar.style.display = 'block';
+		bar.removeAttribute('value');
+		status('Starting the engine...');
+		try {
+			if (blob) {
+				await engine.preloadFile(await blob.arrayBuffer(), DATA_PATH);
+			}
+			await engine.startGame({
+				onProgress: (current, total) => {
+					if (current > 0 && total > 0) {
+						bar.max = total; bar.value = current;
+						status(`Loading the engine... ${mb(current)} of ${mb(total)}`);
+					}
+				},
+			});
+			$('loader').remove();
+		} catch (err) {
+			console.error(err);
+			bar.style.display = 'none';
+			status('The game could not start: ' + (err.message || err), true);
+		}
+	}
+
+	// --- Wiring -------------------------------------------------------------------------------
+
+	const missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
+	if (missing.length) {
+		status('This browser cannot run the game. Missing:\n' + missing.join('\n') + '\nTry a recent Chrome, Edge or Firefox.', true);
+		for (const id of ['play', 'pick', 'download', 'bare']) $(id).disabled = true;
+		$('play').textContent = 'Not supported in this browser';
+		return;
+	}
+
+	$('play').onclick = () => {
+		if (!cached) return;
+		// A newer data pack on the server replaces an older downloaded copy.
+		if (cached.source === 'downloaded' && serverSize && serverSize !== cached.size) {
+			download();
+		} else {
+			start(cached.blob);
+		}
+	};
+	$('pick').onclick = () => $('file').click();
+	$('file').onchange = (e) => useFile(e.target.files[0]);
+	$('download').onclick = download;
+	$('bare').onclick = () => start(null);
+	$('forget').onclick = async () => {
+		await dbDelete('data');
+		cached = null;
+		showCached();
+		status('The saved game data was removed from this browser.');
+	};
+	const drop = $('drop');
+	drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+	drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+	drop.addEventListener('drop', (e) => {
+		e.preventDefault();
+		drop.classList.remove('over');
+		if (e.dataTransfer.files.length) useFile(e.dataTransfer.files[0]);
+	});
+
+	probeDownload();
+	dbGet('data').then((v) => { cached = v; showCached(); }, () => showCached());
+}());
+</script>
+</body>
+</html>
+

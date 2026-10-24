@@ -1,0 +1,39 @@
+IRONBLOOD - browser version
+===========================
+
+PLAY ON THIS PC (Windows)
+1. Unzip this folder anywhere.
+2. Double-click "Play IRONBLOOD in browser.bat".
+   A small window opens (a local web server, keep it open) and your browser
+   shows the game at http://localhost:8060/
+   (Windows may ask once whether PowerShell may run: allow it.)
+3. On the loader page pick where the game data comes from:
+   - "Download the game data": uses ironblood-data.pck from this folder.
+   - "Use my installed game": choose Ironblood.exe from your Windows build.
+   - "Play without game data": simple models, no sound.
+   The browser keeps the data, so next time just press "Play IRONBLOOD".
+Opening index.html directly (double-click) does NOT work: browsers refuse to
+run web games from a plain folder.
+
+PUT IT ONLINE FOR OTHER PLAYERS (GitHub Pages, free)
+1. Make a public GitHub repository and upload every file of this folder
+   (index.html, index.js, index.wasm, index.pck, ironblood-data.pck, ...) to it.
+   The .bat/.ps1/.txt files are not needed online but do no harm.
+2. In the repository: Settings > Pages > "Deploy from a branch", branch main,
+   folder / (root). After a minute the game is at
+   https://<your-name>.github.io/<repository>/
+3. Send that link to your friends. They need nothing installed.
+
+NETWORK GAME IN THE BROWSER
+- Host: "Host Network Game", press Copy, send the invite code (chat, e-mail).
+- Friend: paste it into the field next to Join (Paste button or Ctrl+V),
+  press Join, press Copy, and send the reply code back.
+- Host: paste the reply code, press Connect, then Start.
+- No port forwarding needed. Browser players play with browser players only
+  (not with the Windows .exe).
+
+SAVES
+Saves are kept inside the browser. In Load Game you can download a save, or
+import saves from the Windows game (%APPDATA%\Ironblood\saves\*.json).
+
+Best in Chrome or Edge on a PC with a graphics card. Firefox works too.
