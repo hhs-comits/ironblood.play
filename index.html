@@ -119,7 +119,7 @@ input[type=file] { display: none; }
 
 <script src="index.js"></script>
 <script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":617184,"index.wasm":43699190},"focusCanvas":true,"gdextensionLibs":[]};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":618096,"index.wasm":43699190},"focusCanvas":true,"gdextensionLibs":[]};
 const GODOT_THREADS_ENABLED = false;
 // The data pack sits next to this page, or anywhere that allows downloads
 // from other sites (for example a public GitHub repository's raw file),
@@ -135,6 +135,8 @@ const engine = new Engine(GODOT_CONFIG);
 	let cached = null;     // {blob, source, size, date}
 	let busy = false;
 	let serverSize = 0;    // size of the data pack on the server, once known
+	let serverTag = '';    // its ETag or Last-Modified, which changes with every new build
+	let probing = null;    // the check of the server's data pack, while it runs
 
 	function status(text, error) {
 		statusEl.textContent = text || '';
@@ -190,8 +192,8 @@ const engine = new Engine(GODOT_CONFIG);
 		});
 	}
 
-	async function remember(blob, source) {
-		cached = { blob, source, size: blob.size, date: new Date().toISOString() };
+	async function remember(blob, source, tag = '') {
+		cached = { blob, source, tag, size: blob.size, date: new Date().toISOString() };
 		try {
 			if (navigator.storage && navigator.storage.persist) {
 				await navigator.storage.persist();
@@ -270,6 +272,7 @@ const engine = new Engine(GODOT_CONFIG);
 			if (!r.ok) throw new Error('missing');
 			const size = Number(r.headers.get('Content-Length') || 0);
 			serverSize = size;
+			serverTag = r.headers.get('ETag') || r.headers.get('Last-Modified') || '';
 			setOff('download', false);
 			$('download-note').textContent = `Downloads ${size ? mb(size) : 'the data'} once; the browser keeps it.`;
 		} catch (err) {
@@ -299,7 +302,7 @@ const engine = new Engine(GODOT_CONFIG);
 			}
 			const blob = new Blob(parts, { type: 'application/octet-stream' });
 			if (await readMagic(blob, 0) !== 'GDPC') throw new Error('The downloaded file is not game data.');
-			await remember(blob, 'downloaded');
+			await remember(blob, 'downloaded', r.headers.get('ETag') || r.headers.get('Last-Modified') || serverTag);
 			bar.style.display = 'none';
 			setBusy(false);
 			start(blob);
@@ -350,10 +353,15 @@ const engine = new Engine(GODOT_CONFIG);
 		return;
 	}
 
-	$('play').onclick = () => {
+	$('play').onclick = async () => {
 		if (!cached) return;
 		// A newer data pack on the server replaces an older downloaded copy.
-		if (cached.source === 'downloaded' && serverSize && serverSize !== cached.size) {
+		// Wait for the server check first, or a quick click starts the old
+		// copy. The size alone can stay the same between builds, so the
+		// ETag is compared too (copies saved before it was kept count as old).
+		if (probing) await probing;
+		const newer = (serverSize && serverSize !== cached.size) || (serverTag && cached.tag !== serverTag);
+		if (cached.source === 'downloaded' && newer) {
 			download();
 		} else {
 			start(cached.blob);
@@ -378,7 +386,7 @@ const engine = new Engine(GODOT_CONFIG);
 		if (e.dataTransfer.files.length) useFile(e.dataTransfer.files[0]);
 	});
 
-	probeDownload();
+	probing = probeDownload();
 	dbGet('data').then((v) => { cached = v; showCached(); }, () => showCached());
 }());
 </script>
