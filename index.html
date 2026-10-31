@@ -118,9 +118,51 @@ input[type=file] { display: none; }
 	</div>
 </div>
 
+<script>
+// Network matches keep running in a hidden tab.
+// Browsers stop animation frames in a minimized or background tab, and the
+// game only steps on animation frames, so a hidden player's game stopped and
+// every other player waited for its orders. While a network match runs the
+// game sets window.ironbloodKeepAwake, and frames asked for while the tab is
+// hidden are then driven by a small worker's timer instead (the timers of
+// workers are not slowed down in background tabs). In single player a hidden
+// tab still pauses as before.
+(function () {
+	const realRAF = window.requestAnimationFrame.bind(window);
+	let waiting = [];
+	let worker = null;
+	function tick() {
+		if (!document.hidden || !window.ironbloodKeepAwake) {
+			// The real animation frame runs them; forget the ones it ran.
+			waiting = waiting.filter((f) => !f.done);
+			return;
+		}
+		const now = performance.now();
+		const run = waiting;
+		waiting = [];
+		for (const f of run) f(now);
+	}
+	window.requestAnimationFrame = function (cb) {
+		const once = (t) => { if (!once.done) { once.done = true; cb(t); } };
+		once.done = false;
+		if (window.ironbloodKeepAwake) {
+			if (worker === null) {
+				try {
+					worker = new Worker(URL.createObjectURL(new Blob(['setInterval(() => postMessage(0), 16);'], {type: 'text/javascript'})));
+					worker.onmessage = tick;
+				} catch (e) {
+					worker = false;
+				}
+			}
+			if (worker) waiting.push(once);
+		}
+		return realRAF(once);
+	};
+})();
+</script>
 <script src="index.js"></script>
 <script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":642640,"index.wasm":43699190},"focusCanvas":true,"gdextensionLibs":[]};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":643344,"index.wasm":43699190},"focusCanvas":true,"gdextensionLibs":[]};
 const GODOT_THREADS_ENABLED = false;
 // The data pack sits next to this page, or anywhere that allows downloads
 // from other sites (for example a public GitHub repository's raw file),
