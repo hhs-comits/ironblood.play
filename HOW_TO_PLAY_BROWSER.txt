@@ -25,10 +25,11 @@ PUT IT ONLINE FOR OTHER PLAYERS (GitHub Pages, free)
 3. Send that link to your friends. They need nothing installed.
 
 NETWORK GAME IN THE BROWSER
-- Host: "Host Network Game", press Copy, send the invite code (chat, e-mail).
-- Friend: paste it into the field next to Join (Paste button or Ctrl+V),
-  press Join, press Copy, and send the reply code back.
-- Host: paste the reply code, press Connect, then Start.
+- Host: "Host Network Game". You get a short join code (like WOLF-4821),
+  an invite link and a QR code.
+- Friend: type the code next to Join and press Join, or open the invite
+  link, or scan the QR code. The game connects by itself.
+- Host: set up the sides, then Start.
 - No port forwarding needed. Browser players play with browser players only
   (not with the Windows .exe).
 
