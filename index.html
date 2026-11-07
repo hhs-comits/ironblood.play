@@ -162,7 +162,7 @@ input[type=file] { display: none; }
 </script>
 <script src="index.js"></script>
 <script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":743344,"index.wasm":43699190},"focusCanvas":true,"gdextensionLibs":[]};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":743696,"index.wasm":43699190},"focusCanvas":true,"gdextensionLibs":[]};
 const GODOT_THREADS_ENABLED = false;
 // The data pack sits next to this page, or anywhere that allows downloads
 // from other sites (for example a public GitHub repository's raw file),
@@ -370,7 +370,10 @@ const engine = new Engine(GODOT_CONFIG);
 			if (blob) {
 				await engine.preloadFile(await blob.arrayBuffer(), DATA_PATH);
 			}
+			// The browser may keep an old index.pck (the code pack) for minutes;
+			// a fresh query string makes it fetch the current one.
 			await engine.startGame({
+				mainPack: 'index.pck?t=' + Date.now(),
 				onProgress: (current, total) => {
 					if (current > 0 && total > 0) {
 						bar.max = total; bar.value = current;
