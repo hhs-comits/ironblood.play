@@ -12,7 +12,8 @@ built browser version (Godot 4.4 web export); the source code is kept elsewhere.
   (plus an invite link and QR code); up to three friends type the code under *Join* or
   open the link. Players connect directly, no port forwarding. Browser players and Windows
   players can play each other, as long as both have the same version.
-- **Windows version:** [downloads/ironblood-windows-v0.29.zip](downloads/ironblood-windows-v0.29.zip)
+- **Windows version:** [download the newest version](https://github.com/hhs-comits/ironblood.play/releases/latest/download/ironblood-windows.zip)
+  (all versions and notes: [Releases](https://github.com/hhs-comits/ironblood.play/releases/latest))
   (unzip and keep `Ironblood.exe` next to the `.dll`; the dll is needed for online games).
 
 To play offline on Windows, download this repository as a zip and double-click
