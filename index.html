@@ -77,7 +77,15 @@ button {
 button:hover:not(:disabled) { border-color: var(--gold); color: #fff; }
 button:disabled { opacity: 0.45; cursor: default; }
 button.main { text-align: center; font-size: 20px; color: var(--gold); padding: 14px; }
-button small { display: block; color: var(--dim); font-size: 13px; margin-top: 3px; }
+button small, a.btn small { display: block; color: var(--dim); font-size: 13px; margin-top: 3px; }
+a.btn {
+	display: block; box-sizing: border-box; width: 100%;
+	font-size: 17px; color: var(--text); text-decoration: none;
+	background: linear-gradient(#3a2c1e, #2a2016);
+	border: 1px solid var(--edge); border-radius: 4px;
+	padding: 11px 14px;
+}
+a.btn:hover { border-color: var(--gold); color: #fff; }
 .links { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; font-size: 13px; color: var(--dim); }
 .links a { color: var(--dim); cursor: pointer; text-decoration: underline; }
 #status { margin-top: 14px; min-height: 20px; color: var(--dim); font-size: 14px; white-space: pre-line; }
@@ -107,6 +115,8 @@ input[type=file] { display: none; }
 			<small id="download-note">Looking for it on this server...</small></button></div>
 		<div class="row"><button id="bare">Play without game data
 			<small>Built-in simple models, no sound. Works anywhere.</small></button></div>
+		<div class="row"><a class="btn" id="pczip" href="https://github.com/hhs-comits/ironblood.play/releases/latest" target="_blank" rel="noopener">Download the PC game (Windows zip)
+			<small id="pczip-note">The full game for Windows: unzip it and start Ironblood.exe. No install needed.</small></a></div>
 
 		<progress id="bar"></progress>
 		<div id="status"></div>
@@ -160,9 +170,30 @@ input[type=file] { display: none; }
 	};
 })();
 </script>
+<script>
+// "Download the PC game": the newest Windows zip is a GitHub Release of the
+// site's repository, named after its version (ironblood-windows-vX.YY.zip).
+// Ask GitHub for the newest release and link its zip directly; if that
+// fails the link stays on the newest release's page.
+(function () {
+	const link = document.getElementById('pczip');
+	const note = document.getElementById('pczip-note');
+	fetch('https://api.github.com/repos/hhs-comits/ironblood.play/releases/latest', {headers: {Accept: 'application/vnd.github+json'}})
+		.then((r) => (r.ok ? r.json() : null))
+		.then((rel) => {
+			const zip = rel && (rel.assets || []).find((a) => /^ironblood-windows-v[\d.]+\.zip$/.test(a.name));
+			if (!zip) return;
+			link.href = zip.browser_download_url;
+			link.removeAttribute('target');
+			const mb = zip.size ? ', ' + Math.round(zip.size / 1048576) + ' MB' : '';
+			note.textContent = `${zip.name}${mb}. The full game for Windows: unzip it and start Ironblood.exe. No install needed.`;
+		})
+		.catch(() => {});
+})();
+</script>
 <script src="index.js"></script>
 <script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":966224,"index.wasm":43699190},"focusCanvas":true,"gdextensionLibs":[]};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":969696,"index.wasm":43699190},"focusCanvas":true,"gdextensionLibs":[]};
 const GODOT_THREADS_ENABLED = false;
 // The data pack sits next to this page, or anywhere that allows downloads
 // from other sites (for example a public GitHub repository's raw file),
