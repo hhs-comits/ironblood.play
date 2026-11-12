@@ -16,8 +16,8 @@ built browser version (Godot 4.4 web export); the source code is kept elsewhere.
   (all versions and notes: [Releases](https://github.com/hhs-comits/ironblood.play/releases/latest))
   The start page of the browser version has the same download: **Download the PC game (Windows zip)**.
   (unzip and keep `Ironblood.exe` next to the `.dll`; the dll is needed for online games).
-  The browser version is now v0.72 (the Map Editor with things and online maps); the v0.72 Windows zip follows. Until then the
-  Windows v0.70 and the browser v0.72 cannot join each other's network games.
+  The browser version is now v0.73 (the Map Editor with scenarios); the v0.73 Windows zip follows. Until then the
+  Windows v0.70 and the browser v0.73 cannot join each other's network games.
 
 To play offline on Windows, download this repository as a zip and double-click
 `Play IRONBLOOD in browser.bat` (see `HOW_TO_PLAY_BROWSER.txt`).
