@@ -30,8 +30,8 @@ NETWORK GAME IN THE BROWSER
 - Friend: type the code next to Join and press Join, or open the invite
   link, or scan the QR code. The game connects by itself.
 - Host: set up the sides, then Start.
-- No port forwarding needed. Browser players play with browser players only
-  (not with the Windows .exe).
+- No port forwarding needed. Browser players and Windows players can play
+  each other, as long as both have the same version.
 
 SAVES
 Saves are kept inside the browser. In Load Game you can download a save, or
