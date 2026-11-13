@@ -6,7 +6,7 @@ IRONBLOOD is a barbarian-age real-time strategy game. This repository holds only
 built browser version (Godot 4.4 web export); the source code is kept elsewhere.
 
 - Chrome, Edge or Firefox on a PC with a graphics card.
-- On first start press **Download the game data** (about 16 MB, kept by your browser),
+- On first start press **Download the game data** (about 29 MB, kept by your browser),
   or **Use my installed game** and choose `Ironblood.exe` from the Windows version.
 - **Network game:** the host presses *Host Network Game* and gets a short join code
   (plus an invite link and QR code); up to three friends type the code under *Join* or
@@ -16,9 +16,10 @@ built browser version (Godot 4.4 web export); the source code is kept elsewhere.
   (all versions and notes: [Releases](https://github.com/hhs-comits/ironblood.play/releases/latest))
   The start page of the browser version has the same download: **Download the PC game (Windows zip)**.
   (unzip and keep `Ironblood.exe` next to the `.dll`; the dll is needed for online games).
-  The browser version is now v0.75 (the four peoples, four new land types and the Builders version); the
-  Windows zip follows once the release workflow runs again (after 2026-11-21). Until then the Windows v0.70
-  and the browser v0.75 cannot join each other's network games.
+  The browser version is now v0.77 (since v0.75: the four peoples, four new land types, the Builders
+  version, a Saw Pit modelled in Blender, and recovery when a network game goes out of sync). The
+  Windows zip follows once the release workflow runs again (after 2026-11-21). Until then the Windows
+  v0.70 and the browser v0.77 cannot join each other's network games.
 
 To play offline on Windows, download this repository as a zip and double-click
 `Play IRONBLOOD in browser.bat` (see `HOW_TO_PLAY_BROWSER.txt`).

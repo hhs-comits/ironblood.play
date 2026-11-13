@@ -31,7 +31,7 @@ while ($listener.IsListening) {
 		$path = [Uri]::UnescapeDataString($req.Url.AbsolutePath.TrimStart('/'))
 		if ($path -eq '') { $path = 'index.html' }
 		$full = [IO.Path]::GetFullPath((Join-Path $root $path))
-		if (-not $full.StartsWith($root) -or -not (Test-Path -LiteralPath $full -PathType Leaf)) {
+		if (-not $full.StartsWith($root.TrimEnd('\') + '\', [StringComparison]::OrdinalIgnoreCase) -or -not (Test-Path -LiteralPath $full -PathType Leaf)) {
 			$res.StatusCode = 404
 		} else {
 			$ext = [IO.Path]::GetExtension($full).ToLower()
