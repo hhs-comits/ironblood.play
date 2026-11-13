@@ -16,11 +16,11 @@ built browser version (Godot 4.4 web export); the source code is kept elsewhere.
   (all versions and notes: [Releases](https://github.com/hhs-comits/ironblood.play/releases/latest))
   The start page of the browser version has the same download: **Download the PC game (Windows zip)**.
   (unzip and keep `Ironblood.exe` next to the `.dll`; the dll is needed for online games).
-  The browser version is now v0.83 (since v0.75: the four peoples, four new land types, the Builders
-  version, every building, wall, siege engine and the clothes of every unit modelled in Blender, new
-  command icons and wood-and-bronze buttons, and recovery when a network game goes out of sync). The
-  Windows zip follows once the release workflow runs again (after 2026-11-21). Until then the Windows
-  v0.70 and the browser v0.83 cannot join each other's network games.
+  The browser version is now v0.84 (since v0.75: the four peoples, four new land types, the Builders
+  version, every building, wall, siege engine, mine, animal and horse and the clothes of every unit
+  modelled in Blender, new command icons and wood-and-bronze buttons, and recovery when a network game
+  goes out of sync). The Windows zip follows once the release workflow runs again (after 2026-11-21).
+  Until then the Windows v0.70 and the browser v0.84 cannot join each other's network games.
 
 To play offline on Windows, download this repository as a zip and double-click
 `Play IRONBLOOD in browser.bat` (see `HOW_TO_PLAY_BROWSER.txt`).
